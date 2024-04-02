@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+*.class
+build/
+out/
+.gradle/
