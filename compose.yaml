@@ -1,1 +1,93 @@
 services:
+  redis:
+    image: redis:7.2.4
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:3.3.0
+    environment:
+      HOSTNAME: localstack
+      SERVICES: dynamodb
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: dummykey
+      AWS_SECRET_ACCESS_KEY: dummysecret
+    ports:
+      - "4566-4583:4566-4583"
+    healthcheck:
+      test: ["CMD-SHELL", "(curl -s localhost:4566/_localstack/health | grep -qi '\"dynamodb\": \"running\"')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - "./docker/localstack/dynamodb:/etc/localstack/init"
+
+  keycloak:
+    image: keycloak/keycloak:24.0.2-0
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: true
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test:
+        # script used in place of curl/wget because keycloak does not have/allow it
+        - CMD-SHELL
+        - |
+          bash <<- 'EOF'
+            set -ex # e -> exit immediately on error; x -> write each command that is about to be executed to stderr before it is executed
+
+            # open the TCP socket to localhost on port 8080 for READ and WRITE; assign it to file descriptor 3 (FD 3)
+            exec 3<>/dev/tcp/localhost/8080
+
+            # redirect the output of the echo to FD 3, essentially making a simple GET request to localhost
+            echo -e "GET /health/ready HTTP/1.1\nhost: localhost:8080\n" >&3
+
+            # cat the output of FD 3 with a timeout of 1 second and use the exit status of cat as the exit status of timeout;
+            # search for "status" in the cat output and stop after finding 1 match
+            # search for "UP" in the grep output of status and stop after finding 1 match
+            timeout --preserve-status 1 cat <&3 | grep -m 1 status | grep -m 1 UP
+            ERROR=$?
+
+            # close FD 3 for writing
+            exec 3<&-
+            # close FD 3 for reading
+            exec 3>&-
+
+            exit $$ERROR
+          EOF
+      interval: 15s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
+    command: ["start-dev", "--import-realm"]
+
+  postgres:
+    image: postgres:16.2-alpine3.19
+    environment:
+      POSTGRES_DB: local
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: localhost
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "local"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    command:
+      - postgres
+      - -c
+      - log_statement=all
+      - -c
+      - log_destination=stderr
