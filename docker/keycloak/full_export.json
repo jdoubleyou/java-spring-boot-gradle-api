@@ -513,6 +513,7 @@
       "username": "test_user",
       "firstName": "test",
       "lastName": "user",
+      "email": "me@me.com",
       "emailVerified": true,
       "createdTimestamp": 1712153348824,
       "enabled": true,
@@ -860,7 +861,7 @@
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "authorizationServicesEnabled": true,
-      "publicClient": false,
+      "publicClient": true,
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
@@ -871,7 +872,9 @@
         "display.on.consent.screen": "false",
         "backchannel.logout.revoke.offline.tokens": "false"
       },
-      "authenticationFlowBindingOverrides": {},
+      "authenticationFlowBindingOverrides": {
+        "direct_grant" : "05f3febb-5cc0-4cef-a56f-888edf398986"
+      },
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
