@@ -1,4 +1,40 @@
+boilerplate:
+  oauth2:
+    jwt-issuer: ${ISSUER_URL:http://localhost:8081/realms/custom_realm}
+
 spring:
   application:
     name: boilerplate.api
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${boilerplate.oauth2.jwt-issuer}
+  main:
+    web-application-type: servlet
+  threads:
+    virtual:
+      enabled: true
+management:
+  endpoint:
+    info:
+      enabled: true
+    health:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  info:
+    git:
+      enabled: true
+      mode: full
+    env:
+      enabled: true
+info:
+  application:
+    name: My API Boilerplate
 debug: false
+server:
+  servlet:
+    context-path: ''

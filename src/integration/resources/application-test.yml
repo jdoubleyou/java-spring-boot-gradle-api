@@ -1,0 +1,8 @@
+boilerplate:
+  oauth2:
+    jwt-issuer: http://localhost:8081/realms/custom_realm
+logging:
+  level:
+    com.sourceallies: debug
+    org.springframework.web: debug
+debug: false

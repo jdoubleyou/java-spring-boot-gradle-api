@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+  test:
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - task: docker_up
+      - defer: { task: docker_stop }
+      - ./gradlew check {{ .CLI_ARGS }}
+
+  run:
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - task: docker_up
+      - defer: { task: docker_stop }
+      - ./gradlew bootRun {{ .CLI_ARGS }}
+
+  run-raw:
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - ./gradlew bootRun {{ .CLI_ARGS }}
+
+  docker_up:
+    cmds:
+      - docker compose up -d --wait --no-recreate
+
+  docker_stop:
+    cmds:
+      - docker compose stop
+
+  docker_down:
+    cmds:
+      - docker compose down
