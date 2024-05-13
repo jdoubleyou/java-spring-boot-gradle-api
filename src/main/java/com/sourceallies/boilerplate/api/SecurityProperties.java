@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties("boilerplate.oauth2")
-public class SecurityConfig {
+public class SecurityProperties {
     private String jwtIssuer;
 }

@@ -5,4 +5,14 @@ logging:
   level:
     com.sourceallies: debug
     org.springframework.web: debug
+#    org.apache.http.wire: debug
+#    web: debug
+#    security: debug
 debug: false
+
+testing:
+  direct-grant-endpoint: http://localhost:8081/realms/custom_realm/protocol/openid-connect/token
+  test-clients:
+    - username: test_user
+      client: test_client
+      scopes: "openid email profile roles"

@@ -1,0 +1,235 @@
+openapi: 3.1.0
+info:
+  title: Swagger Petstore - OpenAPI 3.1
+  description: |-
+    This is a sample Pet Store Server based on the OpenAPI 3.1 specification.  You can find out more about
+    Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
+    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
+    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
+
+    Some useful links:
+    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: menus
+    description: Operations for menus and menu items.
+  - name: customers
+    description: Operations for customers.
+  - name: orders
+    description: Operations for orders.
+paths:
+  /menus:
+    get:
+      tags:
+        - menus
+      description: ...
+    post:
+      tags:
+        - menus
+      description: ...
+  /menus/{menuId}:
+    get:
+      tags:
+        - menus
+      description: ...
+    put:
+      tags:
+        - menus
+      description: ...
+    delete:
+      tags:
+        - menus
+      description: ...
+    parameters:
+      - $ref: "#/components/parameters/MenuId"
+  /menus/{menuId}/items:
+    get:
+      tags:
+        - menus
+      description: ...
+    post:
+      tags:
+        - menus
+      description: ...
+    parameters:
+      - $ref: "#/components/parameters/MenuId"
+  /menus/{menuId}/items/{itemId}:
+    get:
+      tags:
+        - menus
+      description: ..
+    put:
+      tags:
+        - menus
+      description: ...
+    delete:
+      tags:
+        - menus
+      description: ...
+    parameters:
+      - $ref: "#/components/parameters/MenuId"
+      - $ref: "#/components/parameters/ItemId"
+  /customers:
+    get:
+      tags:
+        - customers
+      description: Get all known customers.
+    post:
+      tags:
+        - customers
+      description: Create a new customer.
+  /customers/{customerId}:
+    get:
+      tags:
+        - customers
+      description: Get an existing customer by its id.
+    put:
+      tags:
+        - customers
+      description: Update (in full) the details of an existing customer by its id.
+    delete:
+      tags:
+        - customers
+      description: Delete an existing customer by its id.
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+  /customers/{customerId}/orders:
+    get:
+      tags:
+        - customers
+        - orders
+      description: Get all known orders for a customer.
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+  /orders:
+    get:
+      tags:
+        - orders
+      description: Get all known orders.
+    post:
+      tags:
+        - orders
+      description: Create a new order.
+  /orders/{orderId}:
+    get:
+      tags:
+        - orders
+      description: Get the details of a single existing order by its id.
+    put:
+      tags:
+        - orders
+      description: Update (in full) the details of an existing order by its id.
+    delete:
+      tags:
+        - orders
+      description: Delete an existing order.
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+components:
+  parameters:
+    MenuId:
+      name: menuId
+      in: path
+      schema:
+        $ref: "#/components/schemas/UUID"
+    ItemId:
+      name: itemId
+      in: path
+      schema:
+        $ref: "#/components/schemas/UUID"
+    CustomerId:
+      name: customerId
+      in: path
+      schema:
+        $ref: "#/components/schemas/UUID"
+    OrderId:
+      name: orderId
+      in: path
+      schema:
+        $ref: "#/components/schemas/UUID"
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+    Item:
+      type: object
+    OrderStatus:
+      type: string
+      enum:
+        - PENDING
+        - PAID
+        - REFUNDED
+        - FULFILLED
+        - CANCELLED
+        - PARTIALLY_FULFILLED
+    Order:
+      type: object
+      required:
+        - id
+        - status
+        - createdBy
+        - createdOn
+        - lastUpdatedBy
+        - lastUpdatedOn
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        createdOn:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        lastUpdatedOn:
+          type: string
+          format: date-time
+        lastUpdatedBy:
+          type: string
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        statusHistory:
+          type: array
+          items:
+            - type: object
+              properties:
+                status:
+                  $ref: "#/components/schemas/OrderStatus"
+                occurredOn:
+                  type: string
+                  format: date-time
+        fulfilled_items:
+          type: array
+          items:
+            - $ref: "#/components/schemas/UUID"
+            - $ref: "#/components/schemas/Item"
+        refunded_items:
+          type: array
+          items:
+            - $ref: "#/components/schemas/UUID"
+            - $ref: "#/components/schemas/Item"
+  requestBodies:
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

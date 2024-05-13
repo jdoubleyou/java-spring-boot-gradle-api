@@ -30,7 +30,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    JwtDecoder decoder(SecurityConfig securityConfig) {
-        return JwtDecoders.fromIssuerLocation(securityConfig.getJwtIssuer());
+    JwtDecoder decoder(SecurityProperties securityProperties) {
+        return JwtDecoders.fromIssuerLocation(securityProperties.getJwtIssuer());
     }
 }

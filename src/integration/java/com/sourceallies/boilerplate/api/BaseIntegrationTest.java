@@ -2,17 +2,27 @@ package com.sourceallies.boilerplate.api;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +30,9 @@ import java.util.Map;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class BaseIntegrationTest {
+    static final ParameterizedTypeReference<Map<String, String>> JSON_MAP = new ParameterizedTypeReference<>() {
+    };
+
     @LocalServerPort
     int port;
 
@@ -30,8 +43,16 @@ class BaseIntegrationTest {
         mockWebServer = new MockWebServer();
     }
 
+    @Autowired
+    TestingConfigProperties testingConfigProperties;
+
+    @Autowired
+    JdbcClient jdbc;
+
     @BeforeEach
-    void setup() {
+    void cleanup(@Value("classpath:db/cleanup.sql") Resource sqlFile) throws IOException {
+        //noinspection SqlSourceToSinkFlow
+        jdbc.sql(sqlFile.getContentAsString(StandardCharsets.UTF_8)).update();
     }
 
     @AfterEach
@@ -69,18 +90,18 @@ class BaseIntegrationTest {
             .body(body)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .retrieve()
-            .toEntity(new ParameterizedTypeReference<Map<String, String>>() {
-            })
+            .toEntity(JSON_MAP)
             .getBody()
             .getOrDefault("access_token", "NO_ACCESS_TOKEN_FOUND");
     }
 
     protected final WebTestClient getAuthorizedWebTestClient() {
+        var testClient = testingConfigProperties.getTestClients()[0];
         String accessToken = getAccessTokenFor(
-            "http://localhost:8081/realms/custom_realm/protocol/openid-connect/token",
-            "test_user",
-            "test_client",
-            List.of("openid", "email", "profile", "roles")
+            testingConfigProperties.getDirectGrantEndpoint(),
+            testClient.getUsername(),
+            testClient.getClient(),
+            Arrays.asList(testClient.getScopes().split(" "))
         );
         return WebTestClient
             .bindToServer()
@@ -91,37 +112,5 @@ class BaseIntegrationTest {
 
     protected final String bearerToken(String token) {
         return "Bearer %s".formatted(token);
-    }
-
-    @Test
-    void shouldHaveAPublicHealthEndpoint() {
-        getUnauthorizedWebTestClient()
-            .get()
-            .uri("/actuator/health")
-            .exchange()
-            .expectBody().jsonPath("$.status").isEqualTo("UP")
-        ;
-    }
-
-    @Test
-    void shouldHaveAInfoEndpointThatRequiresAuthorization() {
-        getUnauthorizedWebTestClient()
-            .get()
-            .uri("/actuator/info")
-            .exchange()
-            .expectStatus().isUnauthorized();
-        getAuthorizedWebTestClient()
-            .get()
-            .uri("/actuator/info")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.application.name").isNotEmpty()
-            .jsonPath("$.git.commit.id.full").isNotEmpty()
-            .jsonPath("$.git.commit.time").isNotEmpty()
-            .jsonPath("$.git.branch").isNotEmpty()
-            .jsonPath("$.build").doesNotExist()
-            .jsonPath("$.java").doesNotExist()
-        ;
     }
 }
