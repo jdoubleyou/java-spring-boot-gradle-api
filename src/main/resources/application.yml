@@ -11,23 +11,22 @@ boilerplate:
 spring:
   application:
     name: boilerplate.api
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${boilerplate.db.host}:${boilerplate.db.port}/${boilerplate.db.name}
+  r2dbc:
+    url: r2dbc:postgresql://${boilerplate.db.host}:${boilerplate.db.port}/${boilerplate.db.name}
     username: ${boilerplate.db.user}
     password: ${boilerplate.db.pass}
   flyway:
-    driver-class-name: ${spring.datasource.driver-class-name}
-    url: ${spring.datasource.url}
-    user: ${spring.datasource.username}
-    password: ${spring.datasource.password}
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${boilerplate.db.host}:${boilerplate.db.port}/${boilerplate.db.name}
+    user: ${spring.r2dbc.username}
+    password: ${spring.r2dbc.password}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${boilerplate.oauth2.jwt-issuer}
   main:
-    web-application-type: servlet
+    web-application-type: reactive
   threads:
     virtual:
       enabled: true

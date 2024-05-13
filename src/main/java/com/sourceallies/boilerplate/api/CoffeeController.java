@@ -5,6 +5,8 @@ import com.sourceallies.boilerplate.api.coffee.entities.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
@@ -25,72 +27,80 @@ public class CoffeeController {
     }
 
     @GetMapping(MENUS)
-    public Iterable<Menu> getMenus() {
+    public Flux<Menu> getMenus() {
         return menuService.getAll();
     }
 
     @PostMapping(MENUS)
-    public ResponseEntity<Void> createMenu(
+    public Mono<ResponseEntity<Void>> createMenu(
         @RequestBody @Valid CreateMenuRequest body
     ) {
-        return ResponseEntity
-            .created(URI.create(MENUS + "/%s"
-                .formatted(menuService.create(body).getId())))
-            .build();
+        return menuService
+            .create(body)
+            .map(menu -> ResponseEntity
+                .created(URI.create(MENUS + "/%s"
+                    .formatted(menu.getId())))
+                .build());
     }
 
     @GetMapping(value = MENU_BY_ID)
-    public Menu getMenuById(@PathVariable Integer menuId) {
-        return menuService.getByIdOrThrow(menuId);
+    public Mono<Menu> getMenuById(@PathVariable Integer menuId) {
+        return menuService.getById(menuId);
     }
 
     @PutMapping(MENU_BY_ID)
-    public ResponseEntity<Void> updateMenu(
+    public Mono<ResponseEntity<Void>> updateMenu(
         @PathVariable Integer menuId,
         @RequestBody @Valid UpdateMenuRequest body
     ) {
-        menuService.update(menuId, body);
-        return ResponseEntity.noContent().build();
+        return menuService
+            .update(menuId, body)
+            .map(unused -> ResponseEntity.noContent().build());
     }
 
     @DeleteMapping(MENU_BY_ID)
-    public ResponseEntity<Void> deleteMenu(
+    public Mono<ResponseEntity<Void>> deleteMenu(
         @PathVariable Integer menuId
     ) {
-        menuService.delete(menuId);
-        return ResponseEntity.noContent().build();
+        return menuService
+            .delete(menuId)
+            .thenReturn(ResponseEntity.noContent().build());
     }
 
     @GetMapping(CUSTOMERS)
-    public Iterable<Customer> getAllCustomers() {
+    public Flux<Customer> getAllCustomers() {
         return customerService.getAll();
     }
 
     @PostMapping(CUSTOMERS)
-    public ResponseEntity<Void> createCustomer(@RequestBody @Valid CreateCustomerRequest body) {
-        return ResponseEntity
-            .created(URI.create(CUSTOMERS + "/%s"
-                .formatted(customerService.create(body).getId())))
-            .build();
+    public Mono<ResponseEntity<Void>> createCustomer(@RequestBody @Valid CreateCustomerRequest body) {
+        return customerService
+            .create(body)
+            .map(customer -> ResponseEntity
+                .created(URI.create(CUSTOMERS + "/%s".formatted(customer.getId())))
+                .build()
+            );
     }
 
     @GetMapping(CUSTOMER_BY_ID)
-    public Customer getCustomerById(@PathVariable Integer customerId) {
-        return customerService.getByIdOrThrow(customerId);
+    public Mono<Customer> getCustomerById(@PathVariable Integer customerId) {
+        return customerService.getById(customerId);
     }
 
     @PutMapping(CUSTOMER_BY_ID)
-    public ResponseEntity<Void> updateCustomerById(
+    public Mono<ResponseEntity<Void>> updateCustomerById(
         @PathVariable Integer customerId,
         @RequestBody @Valid UpdateCustomerRequest body
     ) {
-        customerService.update(customerId, body);
-        return ResponseEntity.noContent().build();
+        return customerService
+            .update(customerId, body)
+            .map(unused -> ResponseEntity.noContent().build());
     }
 
     @DeleteMapping(CUSTOMER_BY_ID)
-    public ResponseEntity<Void> deleteCustomerById(@PathVariable Integer customerId) {
-        customerService.delete(customerId);
-        return ResponseEntity.noContent().build();
+    public Mono<ResponseEntity<Void>> deleteCustomerById(@PathVariable Integer customerId) {
+        return customerService
+            .delete(customerId)
+            .thenReturn(ResponseEntity.noContent().build());
     }
 }

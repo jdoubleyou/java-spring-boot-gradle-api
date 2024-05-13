@@ -5,6 +5,7 @@ logging:
   level:
     com.sourceallies: debug
     org.springframework.web: debug
+    org.springframework.r2dbc: debug
 #    org.apache.http.wire: debug
 #    web: debug
 #    security: debug

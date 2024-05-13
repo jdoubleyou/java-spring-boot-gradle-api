@@ -3,6 +3,8 @@ package com.sourceallies.boilerplate.api.coffee;
 import com.sourceallies.boilerplate.api.coffee.entities.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -15,44 +17,48 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Iterable<Customer> getAll() {
+    public Flux<Customer> getAll() {
         return customerRepository.findAll();
     }
 
-    public Customer getByIdOrThrow(Integer id) {
+    public Mono<Customer> getById(Integer id) {
         return customerRepository
             .findById(id)
-            .orElseThrow(() -> new MenuNotFoundException(id));
+            .switchIfEmpty(Mono.error(new MenuNotFoundException(id)));
     }
 
-    public Customer create(CreateCustomerRequest request) {
-        var author = Customer.builder()
+    public Mono<Customer> create(CreateCustomerRequest request) {
+        var customer = Customer.builder()
             .name(request.getName())
             .createdDate(ZonedDateTime.now(ZoneOffset.UTC))
             .build();
-        return customerRepository.save(author);
+        return customerRepository.create(customer);
     }
 
-    public Customer update(Integer id, UpdateCustomerRequest request) {
-        Customer customer = customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
-        boolean hasChanges = false;
-        if (
-            !ObjectUtils.nullSafeEquals(
-                customer.getName(),
-                request.getName()
-            )
-        ) {
-            customer.setName(request.getName());
-            hasChanges = true;
-        }
+    public Mono<Customer> update(Integer id, UpdateCustomerRequest request) {
+        return customerRepository
+            .findById(id)
+            .switchIfEmpty(Mono.error(new CustomerNotFoundException(id)))
+            .flatMap(customer -> {
+                boolean hasChanges = false;
+                if (
+                    !ObjectUtils.nullSafeEquals(
+                        customer.getName(),
+                        request.getName()
+                    )
+                ) {
+                    customer.setName(request.getName());
+                    hasChanges = true;
+                }
 
-        if (hasChanges) {
-            customer.setLastUpdatedDate(ZonedDateTime.now(ZoneOffset.UTC));
-        }
-        return customerRepository.save(customer);
+                if (hasChanges) {
+                    customer.setLastUpdatedDate(ZonedDateTime.now(ZoneOffset.UTC));
+                }
+                return customerRepository.update(customer);
+            });
     }
 
-    public void delete(Integer id) {
-        customerRepository.deleteById(id);
+    public Mono<Void> delete(Integer id) {
+        return customerRepository.deleteById(id);
     }
 }

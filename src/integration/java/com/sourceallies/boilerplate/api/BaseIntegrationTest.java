@@ -13,7 +13,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -47,12 +47,12 @@ class BaseIntegrationTest {
     TestingConfigProperties testingConfigProperties;
 
     @Autowired
-    JdbcClient jdbc;
+    DatabaseClient databaseClient;
 
     @BeforeEach
     void cleanup(@Value("classpath:db/cleanup.sql") Resource sqlFile) throws IOException {
         //noinspection SqlSourceToSinkFlow
-        jdbc.sql(sqlFile.getContentAsString(StandardCharsets.UTF_8)).update();
+        databaseClient.sql(sqlFile.getContentAsString(StandardCharsets.UTF_8)).then().block();
     }
 
     @AfterEach

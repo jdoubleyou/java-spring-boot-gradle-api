@@ -3,26 +3,26 @@ package com.sourceallies.boilerplate.api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 public class SecurityConfiguration {
     @Bean
-    SecurityFilterChain springWebFilterChain(HttpSecurity http) throws Exception {
+    SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
         return http
-            .authorizeHttpRequests(auth ->
-                auth
-                    .requestMatchers("/actuator/health").permitAll()
-                    .requestMatchers("/actuator/info").authenticated()
-                    .requestMatchers("/public/**").permitAll()
-                    .anyRequest().authenticated()
+            .authorizeExchange(exchanges ->
+                exchanges
+                    .pathMatchers("/actuator/health").permitAll()
+                    .pathMatchers("/actuator/info").authenticated()
+                    .pathMatchers("/public/**").permitAll()
+                    .anyExchange().authenticated()
             )
             .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
             .build()
@@ -30,7 +30,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    JwtDecoder decoder(SecurityProperties securityProperties) {
-        return JwtDecoders.fromIssuerLocation(securityProperties.getJwtIssuer());
+    ReactiveJwtDecoder reactiveJwtDecoder(SecurityProperties securityProperties) {
+        return ReactiveJwtDecoders.fromIssuerLocation(securityProperties.getJwtIssuer());
     }
 }

@@ -3,6 +3,7 @@ package com.sourceallies.boilerplate.api.coffee.entities;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.ZonedDateTime;
 
@@ -18,8 +19,6 @@ import static com.sourceallies.boilerplate.api.DateConstants.DATE_TIME_FORMAT;
 @AllArgsConstructor
 public class Menu {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "menus_id_seq")
-    @SequenceGenerator(name = "menus_id_seq", allocationSize = 1)
     Integer id;
     String name;
 

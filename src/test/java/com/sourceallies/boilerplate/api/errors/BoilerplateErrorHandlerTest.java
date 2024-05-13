@@ -26,7 +26,7 @@ class BoilerplateErrorHandlerTest {
     @Test
     void givenA_BoilerplateConflictingResourceException_whenHandlingErrorThenFormatTheErrorProperly() {
         String expectedMessage = RandomString.make();
-        var actual = sut.conflictingBook(new BoilerplateConflictingResourceException(expectedMessage));
+        var actual = sut.conflictingResource(new BoilerplateConflictingResourceException(expectedMessage));
         assertThat(actual.getReason()).isEqualTo(expectedMessage);
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 

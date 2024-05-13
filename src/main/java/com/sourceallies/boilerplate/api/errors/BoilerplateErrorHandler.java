@@ -7,13 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 
-@RestControllerAdvice
+@ControllerAdvice
 @Slf4j
 public class BoilerplateErrorHandler /*extends ResponseEntityExceptionHandler*/ {
     @Builder
@@ -42,6 +43,23 @@ public class BoilerplateErrorHandler /*extends ResponseEntityExceptionHandler*/ 
         return statusException;
     }
 
+    @ExceptionHandler({WebExchangeBindException.class})
+    public ResponseStatusException methodArgumentNotValid(WebExchangeBindException exception) {
+        var statusException = new ResponseStatusException(HttpStatus.BAD_REQUEST, "The given request is not valid for the endpoint.");
+
+        var errors = new ArrayList<Error>();
+
+        exception.getFieldErrors().forEach(err -> {
+            errors.add(Error.builder()
+                .field(err.getField())
+                .reason(err.getDefaultMessage())
+                .invalidValue(err.getRejectedValue())
+                .build());
+        });
+        statusException.getBody().setProperty("errors", errors);
+        return statusException;
+    }
+
 
     @ExceptionHandler({BoilerplateNotFoundException.class})
     public ResponseStatusException resourceNotFound(BoilerplateNotFoundException exception) {
@@ -50,11 +68,12 @@ public class BoilerplateErrorHandler /*extends ResponseEntityExceptionHandler*/ 
 
     @ExceptionHandler({DataIntegrityViolationException.class})
     public ResponseStatusException dataIntegrityViolation(DataIntegrityViolationException exception) {
+        log.error("Data integrity error: ", exception);
         return new ResponseStatusException(HttpStatus.CONFLICT, "A conflict occurred with the request.");
     }
 
     @ExceptionHandler({BoilerplateConflictingResourceException.class})
-    public ResponseStatusException conflictingBook(BoilerplateConflictingResourceException exception) {
+    public ResponseStatusException conflictingResource(BoilerplateConflictingResourceException exception) {
         return new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage());
     }
 }

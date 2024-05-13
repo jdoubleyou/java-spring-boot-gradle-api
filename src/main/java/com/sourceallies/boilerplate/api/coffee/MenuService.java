@@ -5,6 +5,8 @@ import com.sourceallies.boilerplate.api.coffee.entities.UpdateMenuRequest;
 import com.sourceallies.boilerplate.api.coffee.entities.Menu;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -17,44 +19,48 @@ public class MenuService {
         this.menuRepository = menuRepository;
     }
 
-    public Iterable<Menu> getAll() {
+    public Flux<Menu> getAll() {
         return menuRepository.findAll();
     }
 
-    public Menu getByIdOrThrow(Integer authorId) {
+    public Mono<Menu> getById(Integer authorId) {
         return menuRepository
             .findById(authorId)
-            .orElseThrow(() -> new MenuNotFoundException(authorId));
+            .switchIfEmpty(Mono.error(new MenuNotFoundException(authorId)));
     }
 
-    public Menu create(CreateMenuRequest request) {
-        var author = Menu.builder()
+    public Mono<Menu> create(CreateMenuRequest request) {
+        var menu = Menu.builder()
             .name(request.getName())
             .createdDate(ZonedDateTime.now(ZoneOffset.UTC))
             .build();
-        return menuRepository.save(author);
+        return menuRepository.create(menu);
     }
 
-    public Menu update(Integer authorId, UpdateMenuRequest request) {
-        Menu menu = menuRepository.findById(authorId).orElseThrow(() -> new MenuNotFoundException(authorId));
-        boolean hasChanges = false;
-        if (
-            !ObjectUtils.nullSafeEquals(
-                menu.getName(),
-                request.getName()
-            )
-        ) {
-            menu.setName(request.getName());
-            hasChanges = true;
-        }
+    public Mono<Menu> update(Integer authorId, UpdateMenuRequest request) {
+        return menuRepository
+            .findById(authorId)
+            .switchIfEmpty(Mono.error(new MenuNotFoundException(authorId)))
+            .flatMap(menu -> {
+                boolean hasChanges = false;
+                if (
+                    !ObjectUtils.nullSafeEquals(
+                        menu.getName(),
+                        request.getName()
+                    )
+                ) {
+                    menu.setName(request.getName());
+                    hasChanges = true;
+                }
 
-        if (hasChanges) {
-            menu.setLastUpdatedDate(ZonedDateTime.now(ZoneOffset.UTC));
-        }
-        return menuRepository.save(menu);
+                if (hasChanges) {
+                    menu.setLastUpdatedDate(ZonedDateTime.now(ZoneOffset.UTC));
+                }
+                return menuRepository.update(menu);
+            });
     }
 
-    public void delete(Integer authorId) {
-        menuRepository.deleteById(authorId);
+    public Mono<Void> delete(Integer authorId) {
+        return menuRepository.deleteById(authorId);
     }
 }
