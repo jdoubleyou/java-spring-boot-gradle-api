@@ -1,10 +1,26 @@
 boilerplate:
   oauth2:
     jwt-issuer: ${ISSUER_URL:http://localhost:8081/realms/custom_realm}
+  db:
+    host: ${BOILERPLATE_DATABASE_HOST:localhost}
+    port: ${BOILERPLATE_DATABASE_POST:5432}
+    name: ${BOILERPLATE_DATABASE_NAME:local}
+    user: ${BOILERPLATE_DATABASE_USERNAME:localhost}
+    pass: ${BOILERPLATE_DATABASE_PASSWORD:password}
 
 spring:
   application:
     name: boilerplate.api
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${boilerplate.db.host}:${boilerplate.db.port}/${boilerplate.db.name}
+    username: ${boilerplate.db.user}
+    password: ${boilerplate.db.pass}
+  flyway:
+    driver-class-name: ${spring.datasource.driver-class-name}
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
   security:
     oauth2:
       resourceserver:

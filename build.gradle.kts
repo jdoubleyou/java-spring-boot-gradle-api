@@ -36,6 +36,8 @@ val integrationImplementation by configurations.getting {
 val integrationRuntimeOnly by configurations.getting //{
 
 configurations["integrationRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
+configurations["integrationCompileOnly"].extendsFrom(configurations.compileOnly.get())
+configurations["integrationAnnotationProcessor"].extendsFrom(configurations.annotationProcessor.get())
 
 idea {
     module {
@@ -62,8 +64,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    runtimeOnly("org.postgresql:postgresql")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     integrationImplementation("org.springframework.boot:spring-boot-starter-test")

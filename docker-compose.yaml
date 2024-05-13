@@ -69,7 +69,7 @@ services:
       timeout: 15s
       retries: 5
       start_period: 30s
-    command: ["start-dev", "--import-realm"]
+    command: ["start-dev", "--import-realm", "--verbose"]
 
   postgres:
     image: postgres:16.2-alpine3.19

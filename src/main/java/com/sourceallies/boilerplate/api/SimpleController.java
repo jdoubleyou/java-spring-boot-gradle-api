@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class SimpleController {
-    @GetMapping("/public/info")
+    @GetMapping("/public/thread")
     public String getThing() {
         var thread = Thread.currentThread();
         return "Thread: %s with type %s".formatted(
