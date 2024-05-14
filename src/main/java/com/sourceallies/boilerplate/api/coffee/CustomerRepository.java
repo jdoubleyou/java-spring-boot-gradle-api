@@ -9,8 +9,8 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Override
-    Customer save(Customer author);
+    Customer save(Customer customer);
 
     @Override
-    Optional<Customer> findById(Integer integer);
+    Optional<Customer> findById(Integer id);
 }

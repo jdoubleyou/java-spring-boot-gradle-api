@@ -9,8 +9,8 @@ import java.util.Optional;
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Integer> {
     @Override
-    Menu save(Menu author);
+    Menu save(Menu menu);
 
     @Override
-    Optional<Menu> findById(Integer integer);
+    Optional<Menu> findById(Integer id);
 }
